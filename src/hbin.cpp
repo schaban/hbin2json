@@ -1182,7 +1182,7 @@ HBIN_BGEO_IFC(HBIN_CAPTURE, PointCapture)(const HBIN_BGEO bgeo, const int32_t pn
 HBIN_BGEO_IFC(int32_t, SkeletonNames)(const HBIN_BGEO bgeo, const char* pAttrName, HBIN_STRING* pNames) {
 	int32_t n = 0;
 	const uint8_t* pAttrs = bgeoDetailAttrsTop(bgeo);
-	if (pAttrs > 0 && pAttrName) {
+	if (pAttrs && pAttrName) {
 		int32_t i;
 		const uint8_t* pTop = (const uint8_t*)bgeo;
 		uint32_t attrsOffs = (uint32_t)(pAttrs - pTop);
@@ -1215,7 +1215,7 @@ HBIN_BGEO_IFC(int32_t, SkeletonNames)(const HBIN_BGEO bgeo, const char* pAttrNam
 HBIN_BGEO_IFC(int32_t, SkeletonParents)(const HBIN_BGEO bgeo, const char* pAttrName, int32_t* pParents) {
 	int32_t n = 0;
 	const uint8_t* pAttrs = bgeoDetailAttrsTop(bgeo);
-	if (pAttrs > 0 && pAttrName) {
+	if (pAttrs && pAttrName) {
 		int32_t i;
 		const uint8_t* pTop = (const uint8_t*)bgeo;
 		uint32_t attrsOffs = (uint32_t)(pAttrs - pTop);
@@ -1244,7 +1244,7 @@ HBIN_BGEO_IFC(int32_t, SkeletonParents)(const HBIN_BGEO bgeo, const char* pAttrN
 HBIN_BGEO_IFC(int32_t, SkeletonTransforms)(const HBIN_BGEO bgeo, const char* pAttrName, float* pXforms) {
 	int32_t n = 0;
 	const uint8_t* pAttrs = bgeoDetailAttrsTop(bgeo);
-	if (pAttrs > 0 && pAttrName) {
+	if (pAttrs && pAttrName) {
 		int32_t i;
 		const uint8_t* pTop = (const uint8_t*)bgeo;
 		uint32_t attrsOffs = (uint32_t)(pAttrs - pTop);
