@@ -188,6 +188,36 @@ void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 		}
 	}
 	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"pntsCaptNodes\" : [");
+	if (maxCaptsPerPnt > 0) {
+		size_t aryCnt = npnt * maxCaptsPerPnt;
+		for (int i = 0; i < npnt; ++i) {
+			for (int j = 0; j < maxCaptsPerPnt; ++j) {
+				HBIN_CAPTURE capt = bgeoPointCapture(bgeo, i, j);
+				::fprintf(pOut, "%d", capt.node);
+				--aryCnt;
+				if (aryCnt > 0) {
+					::fprintf(pOut, ", ");
+				}
+			}
+		}
+	}
+	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"pntsCaptWeights\" : [");
+	if (maxCaptsPerPnt > 0) {
+		size_t aryCnt = npnt * maxCaptsPerPnt;
+		for (int i = 0; i < npnt; ++i) {
+			for (int j = 0; j < maxCaptsPerPnt; ++j) {
+				HBIN_CAPTURE capt = bgeoPointCapture(bgeo, i, j);
+				::fprintf(pOut, "%f", capt.wght);
+				--aryCnt;
+				if (aryCnt > 0) {
+					::fprintf(pOut, ", ");
+				}
+			}
+		}
+	}
+	::fprintf(pOut, "],\n");
 	::fprintf(pOut, "  \"triIdx\" : [");
 	if (ntri > 0) {
 		ctx.aryCnt = ntri;
