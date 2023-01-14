@@ -174,7 +174,7 @@ HBIN_IFC(HBIN_STRING, StringAtIdx)(const void* pMem, const int32_t idx) {
 
 HBIN_IFC(void, PrintString)(HBIN_STRING str) {
 #ifndef HBIN_NO_CLIB
-	int i;
+	size_t i;
 	if (str.pChars && str.len > 0) {
 		for (i = 0; i < str.len; ++i) {
 			printf("%c", str.pChars[i]);
@@ -332,7 +332,6 @@ static HBIN_STRING bgeoFindAttrName(const HBIN_BGEO bgeo, const int nattr, const
 		for (i = 0; i < nattr; ++i) {
 			int attrSize;
 			uint32_t attrType;
-			uint32_t attrTypeFull;
 			const uint8_t* pStrs;
 			int defValSize = 0;
 			int attrValSize = 0;
@@ -358,7 +357,6 @@ static HBIN_STRING bgeoFindAttrName(const HBIN_BGEO bgeo, const int nattr, const
 				pAttrDescr += 4;
 			}
 			attrType = hbinU32(pAttrDescr);
-			attrTypeFull = attrType;
 			pAttrDescr += 4;
 			attrType &= 0xFFFF;
 			if (attrType == 4) { /* index */
@@ -432,7 +430,7 @@ static int32_t bgeoFindAttrInfo(const HBIN_BGEO bgeo, const int nattr, const uin
 			if (attrNameLen <= 0) {
 				break;
 			}
-			if (nameLen == attrNameLen) {
+			if (nameLen == (size_t)attrNameLen) {
 				if (pName) {
 					if (hbinMemCmp(pAttrDescr, pName, nameLen) == 0) {
 						attrId = i;
