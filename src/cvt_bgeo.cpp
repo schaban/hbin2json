@@ -10,6 +10,16 @@ struct BgeoContext {
 };
 
 
+static int countPolVtxCB(const HBIN_PRIM prim, void* pCtxMem) {
+	BgeoContext* pCtx = (BgeoContext*)pCtxMem;
+	if (!pCtx) return 0;
+	if (!pCtx->pOut) return 0;
+	if (bgeoPrimIsPoly(prim)) {
+		pCtx->num += bgeoPrimNumVertices(prim);
+	}
+	return 1;
+}
+
 static int triIdxPrimCB(const HBIN_PRIM prim, void* pCtxMem) {
 	BgeoContext* pCtx = (BgeoContext*)pCtxMem;
 	if (!pCtx) return 0;
@@ -97,11 +107,22 @@ void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 			++npntStrAttrs;
 		}
 	}
+	int nvtx = 0;
+	if (npol > 0) {
+		if (npol == ntri) {
+			nvtx = ntri * 3;
+		} else {
+			ctx.num = 0;
+			bgeoForEachPrim(bgeo, countPolVtxCB, &ctx);
+			nvtx = ctx.num;
+		}
+	}
 	::fprintf(pOut, "{\n");
 	::fprintf(pOut, "  \"dataType\" : \"geo\",\n");
 	::fprintf(pOut, "  \"npnt\" : %d,\n", npnt);
 	::fprintf(pOut, "  \"ntri\" : %d,\n", ntri);
 	::fprintf(pOut, "  \"npol\" : %d,\n", npol);
+	::fprintf(pOut, "  \"nvtx\" : %d,\n", nvtx);
 	::fprintf(pOut, "  \"nmtl\" : %d,\n", nmtl);
 	::fprintf(pOut, "  \"npntAttrs\" : %d,\n", npntAttrs);
 	::fprintf(pOut, "  \"npntVecAttrs\" : %d,\n", npntVecAttrs);
