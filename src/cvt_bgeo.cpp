@@ -5,6 +5,7 @@
 struct BgeoContext {
 	HBIN_BGEO bgeo;
 	size_t aryCnt;
+	int num;
 	FILE* pOut;
 };
 
@@ -27,6 +28,43 @@ static int triIdxPrimCB(const HBIN_PRIM prim, void* pCtxMem) {
 			if (pCtx->aryCnt > 0) {
 				::fprintf(pCtx->pOut, ", ");
 			}
+		}
+	}
+	return 1;
+}
+
+static int polIdxPrimCB(const HBIN_PRIM prim, void* pCtxMem) {
+	BgeoContext* pCtx = (BgeoContext*)pCtxMem;
+	if (!pCtx) return 0;
+	if (!pCtx->pOut) return 0;
+	if (bgeoPrimIsPoly(prim)) {
+		int32_t nvtx = bgeoPrimNumVertices(prim);
+		for (int32_t j = 0; j < nvtx; ++j) {
+			int32_t pid = bgeoPrimVertexPntId(prim, j);
+			::fprintf(pCtx->pOut, "%d", pid);
+			if (j < nvtx - 1) {
+				::fprintf(pCtx->pOut, ", ");
+			}
+		}
+		--pCtx->aryCnt;
+		if (pCtx->aryCnt > 0) {
+			::fprintf(pCtx->pOut, ", ");
+		}
+	}
+	return 1;
+}
+
+static int polRangePrimCB(const HBIN_PRIM prim, void* pCtxMem) {
+	BgeoContext* pCtx = (BgeoContext*)pCtxMem;
+	if (!pCtx) return 0;
+	if (!pCtx->pOut) return 0;
+	if (bgeoPrimIsPoly(prim)) {
+		int nvtx = bgeoPrimNumVertices(prim);
+		::fprintf(pCtx->pOut, "%d, %d", pCtx->num, nvtx);
+		pCtx->num += nvtx;
+		--pCtx->aryCnt;
+		if (pCtx->aryCnt > 0) {
+			::fprintf(pCtx->pOut, ", ");
 		}
 	}
 	return 1;
@@ -222,6 +260,19 @@ void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 	if (ntri > 0) {
 		ctx.aryCnt = ntri;
 		bgeoForEachPrim(bgeo, triIdxPrimCB, &ctx);
+	}
+	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"polIdx\" : [");
+	if (npol > 0 && npol != ntri) {
+		ctx.aryCnt = npol;
+		bgeoForEachPrim(bgeo, polIdxPrimCB, &ctx);
+	}
+	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"pols\" : [");
+	if (npol > 0 && npol != ntri) {
+		ctx.aryCnt = npol;
+		ctx.num = 0;
+		bgeoForEachPrim(bgeo, polRangePrimCB, &ctx);
 	}
 	::fprintf(pOut, "],\n");
 	::fprintf(pOut, "  \"_EOF_\" : true\n");
