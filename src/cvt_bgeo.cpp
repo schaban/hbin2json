@@ -80,6 +80,21 @@ static int polRangePrimCB(const HBIN_PRIM prim, void* pCtxMem) {
 	return 1;
 }
 
+static int polMtlIdCB(const HBIN_PRIM prim, void* pCtxMem) {
+	BgeoContext* pCtx = (BgeoContext*)pCtxMem;
+	if (!pCtx) return 0;
+	if (!pCtx->pOut) return 0;
+	if (bgeoPrimIsPoly(prim)) {
+		int32_t mtlId = bgeoPrimMaterialId(prim);
+		::fprintf(pCtx->pOut, "%d", mtlId);
+		--pCtx->aryCnt;
+		if (pCtx->aryCnt > 0) {
+			::fprintf(pCtx->pOut, ", ");
+		}
+	}
+	return 1;
+}
+
 void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 	if (!bgeoValid(bgeo)) return;
 	if (pOut == nullptr) pOut = stdout;
@@ -277,6 +292,21 @@ void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 		}
 	}
 	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"mtlPaths\" : [");
+	if (nmtl > 0) {
+		size_t aryCnt = nmtl;
+		for (int i = 0; i < nmtl; ++i) {
+			HBIN_STRING mtlPath = bgeoMaterialPath(bgeo, i);
+			::fprintf(pOut, "\"");
+			hbin_str_out(pOut, mtlPath);
+			::fprintf(pOut, "\"");
+			--aryCnt;
+			if (aryCnt > 0) {
+				::fprintf(pOut, ", ");
+			}
+		}
+	}
+	::fprintf(pOut, "],\n");
 	::fprintf(pOut, "  \"triIdx\" : [");
 	if (ntri > 0) {
 		ctx.aryCnt = ntri;
@@ -294,6 +324,12 @@ void write_bgeo_json(HBIN_BGEO bgeo, FILE* pOut) {
 		ctx.aryCnt = npol;
 		ctx.num = 0;
 		bgeoForEachPrim(bgeo, polRangePrimCB, &ctx);
+	}
+	::fprintf(pOut, "],\n");
+	::fprintf(pOut, "  \"mtlIds\" : [");
+	if (npol > 0 && nmtl > 0) {
+		ctx.aryCnt = npol;
+		bgeoForEachPrim(bgeo, polMtlIdCB, &ctx);
 	}
 	::fprintf(pOut, "],\n");
 	::fprintf(pOut, "  \"_EOF_\" : true\n");
