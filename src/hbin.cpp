@@ -221,6 +221,8 @@ HBIN_BGEO_IFC(int32_t, NumDetailAttrs)(const HBIN_BGEO bgeo) { return bgeoI32(bg
 
 static int32_t bgeoCalcItemRecSize(const HBIN_BGEO bgeo, const int32_t nattr, const uint32_t offs, const int32_t stdRecSize, const uint8_t** ppNext) {
 	int32_t recSize = 0;
+	const uint8_t* pTop = (const uint8_t*)bgeo;
+	const uint8_t* pAttrDescr = pTop + offs;
 	if (nattr >= 0) {
 		recSize = stdRecSize;
 		if (nattr > 0) {
@@ -229,8 +231,6 @@ static int32_t bgeoCalcItemRecSize(const HBIN_BGEO bgeo, const int32_t nattr, co
 			uint32_t attrType;
 			int defValSize = 0;
 			int attrValSize = 0;
-			const uint8_t* pTop = (const uint8_t*)bgeo;
-			const uint8_t* pAttrDescr = pTop + offs;
 			for (i = 0; i < nattr; ++i) {
 				int nameSize = hbinI16(pAttrDescr);
 				pAttrDescr += 2;
@@ -291,10 +291,10 @@ static int32_t bgeoCalcItemRecSize(const HBIN_BGEO bgeo, const int32_t nattr, co
 					break;
 				}
 			}
-			if (ppNext) {
-				*ppNext = pAttrDescr;
-			}
 		}
+	}
+	if (ppNext) {
+		*ppNext = pAttrDescr;
 	}
 	return recSize;
 }
