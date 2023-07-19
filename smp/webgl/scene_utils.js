@@ -1,4 +1,17 @@
-// Author: Sergey Chaban <sergey.chaban@gmail.com>
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: 2020 Sergey Chaban <sergey.chaban@gmail.com>
+
+function degToRad(d) {
+	return d * (Math.PI / 180.0);
+}
+
+function radToDeg(r) {
+	return r * (180.0 / Math.PI);
+}
+
+function lerp(a, b, t) {
+	return a + (b - a)*t;
+}
 
 class VEC {
 	constructor() {
@@ -322,3 +335,244 @@ function mdegy(dy)    { return (new MTX()).degY(dy); }
 function mdegz(dz)    { return (new MTX()).degZ(dz); }
 function mread(d, o)  { return (new MTX()).read(d, o); }
 
+
+function hex(x) {
+	return x.toString(16);
+}
+
+function millis() {
+	return performance.now();
+}
+
+function dbgmsg(msg = "") {
+	const dbg = document.getElementById("dbgmsg");
+	if (dbg) {
+		dbg.innerHTML += msg + "<br>";
+	} else {
+		console.log(msg);
+	}
+}
+
+function getFileName(fpath) {
+	return fpath.substring(fpath.lastIndexOf("/")+1);
+}
+
+function dataReq(path, cb = null, txt = false) {
+	let req = new XMLHttpRequest();
+	req.overrideMimeType(txt ? "text/plain" : "application/octet-stream");
+	req.responseType = txt ? "text" : "arraybuffer";
+	let res = null;
+	req.onreadystatechange = function() {
+		if (req.readyState === 4 && req.status !== 404) {
+			res = txt ? req.responseText : req.response;
+			if (cb) {
+				cb(res, path);
+			}
+		}
+	};
+	req.open('GET', path, cb != null);
+	req.send(null);
+	return res;
+}
+
+
+function compileShader(src, type) {
+	let s = null;
+	const gl = scene.gl;
+	if (gl && src) {
+		s = gl.createShader(type);
+		if (s) {
+			gl.shaderSource(s, src);
+			gl.compileShader(s);
+			if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+				console.log(gl.getShaderInfoLog(s));
+				gl.deleteShader(s);
+				s = null;
+			}
+		}
+	}
+	return s;
+}
+
+function compileVertShader(src) {
+	const gl = scene.gl;
+	return gl ? compileShader(src, gl.VERTEX_SHADER) : null;
+}
+
+function compileFragShader(src) {
+	const gl = scene.gl;
+	return compileShader(src, gl.FRAGMENT_SHADER);
+}
+
+function createGPUProgram(vs, fs) {
+	const gl = scene.gl;
+	let prog = null;
+	if (gl && vs && fs) {
+		prog = gl.createProgram();
+		gl.attachShader(prog, vs);
+		gl.attachShader(prog, fs);
+		gl.linkProgram(prog);
+		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+			console.log(gl.getProgramInfoLog(prog));
+			gl.deleteProgram(prog);
+			prog = null;
+		}
+	}
+	return prog;
+}
+
+function ckAttLoc(loc) {
+	return (typeof loc === "number") && (loc >= 0);
+}
+
+function setVtxAttr(loc, nelems, offs, stride) {
+	const gl = scene.gl;
+	if (gl && ckAttLoc(loc)) {
+		gl.enableVertexAttribArray(loc);
+		gl.vertexAttribPointer(loc, nelems, gl.FLOAT, false, stride, offs);
+	}
+	return offs + nelems*4;
+}
+
+function setPrmMtx(loc, mtx) {
+	const gl = scene.gl;
+	if (gl && loc) {
+		gl.uniformMatrix4fv(loc, false, mtx.e);
+	}
+}
+
+
+class Camera {
+	constructor(width, height) {
+		this.width = width;
+		this.height = height;
+		this.aspect = width / height;
+		this.eye = vset(0.0, 0.0, 0.0);
+		this.tgt = vset(0.0, 0.0, -1.0);
+		this.up = vset(0.0, 1.0, 0.0);
+		this.zoom = 2.5;
+		this.near = 0.01;
+		this.far = 100.0;
+		this.view = new MTX();
+		this.proj = new MTX();
+		this.viewProj = new MTX();
+	}
+
+	update() {
+		const eye = this.eye;
+		const tgt = this.tgt;
+		const up = this.up;
+		let vz = vsub(tgt, eye).normalize();
+		let vx = vcross(up, vz).normalize();
+		let vy = vcross(vx, vz).normalize();
+		let vt = vset(vdot(eye, vx), vdot(eye, vy), vdot(eye, vz));
+		vx.neg();
+		vy.neg();
+		vz.neg();
+		this.view.identity();
+		this.view.setRowVec(0, vx, 0.0);
+		this.view.setRowVec(1, vy, 0.0);
+		this.view.setRowVec(2, vz, 0.0);
+		this.view.setColVec(3, vt, 1.0);
+
+		let hfovy = Math.atan2(1.0, this.zoom * this.aspect);
+		let c = 1.0 / Math.tan(hfovy);
+		let q = this.far / (this.far - this.near);
+		this.proj.setCol(0, c / this.aspect, 0.0, 0.0, 0.0);
+		this.proj.setCol(1, 0.0, c, 0.0, 0.0);
+		this.proj.setCol(2, 0.0, 0.0, -q, -1.0);
+		this.proj.setCol(3, 0.0, 0.0, -q * this.near, 0.0);
+
+		this.viewProj.mul(this.proj, this.view);
+	}
+
+	set(prog) {
+		const gl = scene.gl;
+		if (!gl) return;
+		if (prog) {
+			setPrmMtx(gl, prog.prmLocViewProj, this.viewProj);
+		}
+	}
+
+}
+
+class Scene {
+	constructor() {
+	}
+
+	init(canvasId = "canvas") {
+		const c = document.getElementById(canvasId);
+		if (!c) {
+			console.log("SCN: !canvas");
+			return;
+		}
+
+		this.gl = null;
+		try { this.gl = c.getContext("webgl"); } catch(e) {}
+		if (!this.gl) {
+			console.log("SCN: !webgl");
+			return;
+		}
+
+		this.cam = new Camera(c.width, c.height);
+	}
+
+	clear() {
+		this.files = null;
+		this.vertShaders = {};
+		this.fragShaders = {};
+		this.progs = {};
+		this.models = {};
+		this.textures = {};
+		this.anims = {};
+	}
+
+	initResources(files) {
+		this.files = files;
+	}
+
+	load(flst, cb) {
+		this.clear();
+		if (!this.gl) {
+			return;
+		}
+		const txtExts = ["vert", "frag", "json"];
+		const files = {};
+		for (const fpath of flst) {
+			const fname = getFileName(fpath);
+			files[fname] = null;
+		}
+			for (const fpath of flst) {
+				let isTxt = false;
+				for (const ext of txtExts) {
+					if (fpath.endsWith("." + ext)) {
+						isTxt = true;
+						break;
+					}
+				}
+				dataReq(fpath, (data, path) => { files[getFileName(path)] = data; }, isTxt);
+			}
+			let wait = setInterval(() => {
+				let loadDone = true;
+				for (const fpath of flst) {
+					loadDone = !!files[getFileName(fpath)];
+					if (!loadDone) break;
+				}
+				if (loadDone) {
+					clearInterval(wait);
+					this.initResources(files);
+					cb();
+				}
+			}, 100);
+	}
+
+	printFiles() {
+		if (!this.files) return;
+		dbgmsg("Scene files:");
+		for (const fname in this.files) {
+			dbgmsg((typeof this.files[fname] === "string" ? "txt" : "bin") + ": " + fname);
+		}
+	}
+}
+
+const scene = new Scene();
