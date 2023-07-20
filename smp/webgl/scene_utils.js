@@ -191,6 +191,11 @@ class MTX {
 		return this;
 	}
 
+	zero() {
+		this.e.fill(0.0);
+		return this;
+	}
+
 	mul(m1, m2) {
 		const e1 = m2 ? m1.e : this.e;
 		const e2 = m2 ? m2.e : m1.e;
@@ -202,6 +207,82 @@ class MTX {
 		}
 		for (let i = 0; i < 4*4; ++i) {
 			this.e[i] = e[i];
+		}
+		return this;
+	}
+
+	invert() {
+		const itmp = new Int32Array(4 * 3);
+		const ipiv = 0;
+		const icol = 4;
+		const irow = 4 + 4;
+		let ir = 0;
+		let ic = 0;
+		for (let i = 0; i < 4; ++i) {
+			itmp[ipiv + i] = 0;
+		}
+		for (let i = 0; i < 4; ++i) {
+			let amax = 0.0;
+			for (let j = 0; j < 4; ++j) {
+				if (itmp[ipiv + j] != 1) {
+					let rj = j * 4;
+					for (let k = 0; k < 4; ++k) {
+						if (0 == itmp[ipiv + k]) {
+							let a = this.e[rj + k];
+							if (a < 0.0) a = -a;
+							if (a >= amax) {
+								amax = a;
+								ir = j;
+								ic = k;
+							}
+						}
+					}
+				}
+			}
+			++itmp[ipiv + ic];
+			if (ir != ic) {
+				let rr = ir * 4;
+				let rc = ic * 4;
+				for (let j = 0; j < 4; ++j) {
+					let t = this.e[rr + j];
+					this.e[rr + j] = this.e[rc + j];
+					this.e[rc + j] = t;
+				}
+			}
+			itmp[irow + i] = ir;
+			itmp[icol + i] = ic;
+			let rc = ic * 4;
+			let piv = this.e[rc + ic];
+			if (piv == 0.0) {
+				return zero();
+			}
+			let rpiv = 1.0 / piv;
+			this.e[rc + ic] = 1.0;
+			for (let j = 0; j < 4; ++j) {
+				this.e[rc + j] *= rpiv;
+			}
+			for (let j = 0; j < 4; ++j) {
+				if (j != ic) {
+					let rj = j * 4;
+					let d = this.e[rj + ic];
+					this.e[rj + ic] = 0.0;
+					for (let k = 0; k < 4; ++k) {
+						this.e[rj + k] -= this.e[rc + k] * d;
+					}
+				}
+			}
+		}
+		for (let i = 4; --i >= 0;) {
+			ir = itmp[irow + i];
+			ic = itmp[icol + i];
+			if (ir != ic) {
+				for (let j = 0; j < 4; ++j) {
+					let rj = j * 4;
+					let t = this.e[rj + ir];
+					this.e[rj + ir] = this.e[rj + ic];
+					this.e[rj + ic] = t;
+				}
+			}
 		}
 		return this;
 	}
@@ -334,6 +415,14 @@ function mdegx(dx)    { return (new MTX()).degX(dx); }
 function mdegy(dy)    { return (new MTX()).degY(dy); }
 function mdegz(dz)    { return (new MTX()).degZ(dz); }
 function mread(d, o)  { return (new MTX()).read(d, o); }
+
+function mdegxyz(dx, dy, dz) {
+	let mx = mdegx(dx);
+	let my = mdegy(dy);
+	let mz = mdegz(dz);
+	let m = mmul(mz, my);
+	return mmul(m, mx);
+}
 
 
 function hex(x) {
