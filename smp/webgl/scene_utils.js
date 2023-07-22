@@ -380,7 +380,7 @@ class MTX {
 	}
 
 	xlatV(v) {
-		xlat(v.x, v.y, v.z);
+		this.xlat(v.x, v.y, v.z);
 		return this;
 	}
 
