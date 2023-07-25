@@ -389,6 +389,10 @@ class MTX {
 		return this;
 	}
 
+	get translation() {
+		return vset(this.e[3], this.e[3 + 4], this.e[3 + 8]);
+	}
+
 	read(dat, offs) {
 		for (let i = 0; i < 4*4; ++i) {
 			this.e[i] = datF32(dat, offs + i*4);
