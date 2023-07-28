@@ -131,7 +131,7 @@ class VEC {
 
 	read(dat, offs) {
 		for (let i = 0; i < 3; ++i) {
-			this.e[i] = datF32(dat, offs + i*4);
+			this.e[i] = dat.getFloat32(offs + i*4, true);
 		}
 		return this;
 	}
@@ -321,7 +321,6 @@ class MTX {
 		return this.setCol(i, m.e[i], m.e[i + 4], m.e[i + 8], m.e[i + 12]);
 	}
 
-
 	transpose() {
 		for (let i = 0; i < 3; ++i) {
 			for (let j = i + 1; j < 4; ++j) {
@@ -393,9 +392,31 @@ class MTX {
 		return vset(this.e[3], this.e[3 + 4], this.e[3 + 8]);
 	}
 
+	calcVec(v) {
+		const x = v.x;
+		const y = v.y;
+		const z = v.z;
+		return vset(
+			x*this.e[0] + y*this.e[1] + z*this.e[2],
+			x*this.e[4] + y*this.e[5] + z*this.e[6],
+			x*this.e[8] + y*this.e[9] + z*this.e[10]
+		);
+	}
+
+	calcPnt(v) {
+		const x = v.x;
+		const y = v.y;
+		const z = v.z;
+		return vset(
+			x*this.e[0] + y*this.e[1] + z*this.e[2] + this.e[3],
+			x*this.e[4] + y*this.e[5] + z*this.e[6] + this.e[7],
+			x*this.e[8] + y*this.e[9] + z*this.e[10] + this.e[11]
+		);
+	}
+
 	read(dat, offs) {
 		for (let i = 0; i < 4*4; ++i) {
-			this.e[i] = datF32(dat, offs + i*4);
+			this.e[i] = dat.getFloat32(offs + i*4, true);
 		}
 		return this;
 	}
@@ -464,6 +485,9 @@ function dataReq(path, cb = null, txt = false) {
 		}
 	};
 	req.open('GET', path, cb != null);
+	req.setRequestHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+	req.setRequestHeader("Pragma", "no-cache");
+	req.setRequestHeader("Expires", "0");
 	req.send(null);
 	return res;
 }
