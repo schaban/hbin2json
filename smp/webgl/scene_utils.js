@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: 2020 Sergey Chaban <sergey.chaban@gmail.com>
+// SPDX-FileCopyrightText: 2023 Sergey Chaban <sergey.chaban@gmail.com>
 
 function degToRad(d) {
 	return d * (Math.PI / 180.0);
@@ -153,6 +153,10 @@ function vdot(v1, v2)   { return v1.dot(v2); }
 function vcross(v1, v2) { return (new VEC()).cross(v1, v2); }
 function vnrm(v)        { return vcpy(v).normalize(); }
 function vread(d, o)    { return (new VEC()).read(d, o); }
+
+function vtriple(v0, v1, v2) {
+	return vcross(v0, v1).dot(v2);
+}
 
 
 function dotRowCol(e1, e2, ir, ic) {
@@ -447,6 +451,40 @@ function mdegxyz(dx, dy, dz) {
 	let mz = mdegz(dz);
 	let m = mmul(mz, my);
 	return mmul(m, mx);
+}
+
+
+// -> {hitPos, hitNrm} | null
+function segQuadCCW(p0, p1, v0, v1, v2, v3) {
+	let e0 = vsub(v1, v0);
+	let n = vcross(e0, vsub(v2, v0)).normalize();
+	let vec0 = vsub(p0, v0);
+	let d0 = vec0.dot(n);
+	let d1 = vsub(p1, v0).dot(n);
+	if (d0*d1 > 0.0 || (d0 == 0.0 && d1 == 0.0)) return null;
+	let e1 = vsub(v2, v1);
+	let e2 = vsub(v3, v2);
+	let e3 = vsub(v0, v3);
+	let vec1 = vsub(p0, v1);
+	let vec2 = vsub(p0, v2);
+	let vec3 = vsub(p0, v3);
+	let dir = vsub(p1, p0);
+	if (vtriple(e0, dir, vec0) < 0.0) return null;
+	if (vtriple(e1, dir, vec1) < 0.0) return null;
+	if (vtriple(e2, dir, vec2) < 0.0) return null;
+	if (vtriple(e3, dir, vec3) < 0.0) return null;
+	const d = dir.dot(n);
+	let t = 0.0;
+	if (d != 0.0 && d0 != 0.0) {
+		t = -d0 / d;
+	}
+	if (t > 1.0 || t < 0.0) return null;
+	let pos = vadd(p0, vscl(dir, t));
+	return {hitPos: pos, hitNrm: n};
+}
+
+function segTriCCW(p0, p1, v0, v1, v2) {
+	return segQuadCCW(p0, p1, v0, v1, v2, v0);
 }
 
 
