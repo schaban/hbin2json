@@ -487,6 +487,10 @@ function segTriCCW(p0, p1, v0, v1, v2) {
 	return segQuadCCW(p0, p1, v0, v1, v2, v0);
 }
 
+function triNormalCCW(v0, v1, v2) {
+	return vcross(vsub(v1, v0), vsub(v2, v0)).normalize();
+}
+
 
 function hex(x) {
 	return x.toString(16);
