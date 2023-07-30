@@ -34,6 +34,7 @@ let g_anim = null;
 let g_animFrame = 0;
 
 let g_rotDY = 0.0;
+let g_offsX = 0.0;
 
 const g_animChannels = ["tx", "ty", "tz", "rx", "ry", "rz"];
 
@@ -108,7 +109,16 @@ function loop() {
 
 	const cam = scene.cam;
 	if (cam && g_mdlData && g_gpuProg) {
-		cam.eye.set(1.1, 1.2, 4.0);
+		if (scene.ckKeyNow("ArrowLeft")) {
+			g_offsX -= 0.05;
+			g_offsX = Math.max(g_offsX, -2.5);
+		}
+		if (scene.ckKeyNow("ArrowRight")) {
+			g_offsX += 0.05;
+			g_offsX = Math.min(g_offsX, 1.0);
+		}
+
+		cam.eye.set(1.1 + g_offsX, 1.2, 4.0);
 		cam.tgt.set(0.0, 0.9, 0.0);
 		cam.update();
 
@@ -331,6 +341,8 @@ function initGPU() {
 
 function start() {
 	scene.printFiles();
+
+	scene.initKeys(["ArrowLeft", "ArrowRight"]);
 
 	initGPU();
 
