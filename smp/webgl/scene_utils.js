@@ -655,6 +655,24 @@ class Camera {
 
 }
 
+function scnKeyEvt(evt) {
+	let scn = scene;
+	if (!scn) return;
+	if (!scn.keyNames) return;
+	let kname = evt.key;
+	this.kbdOld = this.kbdNow;
+	let kidx = -1;
+	if (evt.type === "keydown" || evt.type === "keyup") {
+		kidx = scn.keyNames.indexOf(kname);
+	}
+	if (kidx < 0) return;
+	if (evt.type === "keydown") {
+		scn.kbdNow |= 1 << kidx;
+	} else if (evt.type === "keyup") {
+		scn.kbdNow &= ~(1 << kidx);
+	}
+}
+
 class Scene {
 	constructor() {
 	}
@@ -665,6 +683,7 @@ class Scene {
 			console.log("SCN: !canvas");
 			return;
 		}
+		this.canvas = c;
 
 		this.gl = null;
 		try { this.gl = c.getContext("webgl"); } catch(e) {}
@@ -676,14 +695,28 @@ class Scene {
 		this.cam = new Camera(c.width, c.height);
 	}
 
+	initKeys(keysList) {
+		this.kbdNow = 0;
+		this.kbdOld = 0;
+		if (!keysList) return;
+		const nkeys = Math.max(keysList.length, 30);
+		this.keyNames = new Array(nkeys);
+		for (let i = 0; i < nkeys; ++i) {
+			this.keyNames[i] = keysList[i];
+		}
+		document.addEventListener("keydown", scnKeyEvt);
+		document.addEventListener("keyup", scnKeyEvt);
+	}
+
+	ckKeyNow(kname) {
+		if (!this.keyNames) return false;
+		let kidx = this.keyNames.indexOf(kname);
+		if (kidx < 0) return false;
+		return (this.kbdNow & (1 << kidx)) != 0;
+	}
+
 	clear() {
 		this.files = null;
-		this.vertShaders = {};
-		this.fragShaders = {};
-		this.progs = {};
-		this.models = {};
-		this.textures = {};
-		this.anims = {};
 	}
 
 	initResources(files) {
