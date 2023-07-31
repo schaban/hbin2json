@@ -487,8 +487,20 @@ function segTriCCW(p0, p1, v0, v1, v2) {
 	return segQuadCCW(p0, p1, v0, v1, v2, v0);
 }
 
+function segQuadCW(p0, p1, v0, v1, v2, v3) {
+	return segQuadCCW(p0, p1, v3, v2, v1, v0);
+}
+
+function segTriCW(p0, p1, v0, v1, v2) {
+	return segQuadCCW(p0, p1, v2, v1, v0, v2);
+}
+
 function triNormalCCW(v0, v1, v2) {
 	return vcross(vsub(v1, v0), vsub(v2, v0)).normalize();
+}
+
+function triNormalCW(v0, v1, v2) {
+	return vcross(vsub(v0, v1), vsub(v2, v1)).normalize();
 }
 
 
