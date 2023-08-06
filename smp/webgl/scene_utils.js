@@ -721,11 +721,26 @@ class Scene {
 		document.addEventListener("keyup", scnKeyEvt);
 	}
 
-	ckKeyNow(kname) {
+	getKeyMask(kname) {
 		if (!this.keyNames) return false;
 		let kidx = this.keyNames.indexOf(kname);
-		if (kidx < 0) return false;
-		return (this.kbdNow & (1 << kidx)) != 0;
+		if (kidx < 0) return 0;
+		return (1 << kidx);
+	}
+
+	ckKeyNow(kname) {
+		const mask = this.getKeyMask(kname);
+		return (this.kbdNow & mask) != 0;
+	}
+
+	ckKeyTrg(kname) {
+		const mask = this.getKeyMask(kname);
+		return ((this.kbdNow & (this.kbdNow ^ this.kbdOld)) & mask) != 0;
+	}
+
+	ckKeyChg(kname) {
+		const mask = this.getKeyMask(kname);
+		return ((this.kbdNow ^ this.kbdOld) & mask) != 0;
 	}
 
 	clear() {
