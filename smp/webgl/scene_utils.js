@@ -689,7 +689,7 @@ class Scene {
 	constructor() {
 	}
 
-	init(canvasId = "canvas") {
+	init(canvasId = "canvas", ctxType = "webgl") {
 		const c = document.getElementById(canvasId);
 		if (!c) {
 			console.log("SCN: !canvas");
@@ -698,11 +698,12 @@ class Scene {
 		this.canvas = c;
 
 		this.gl = null;
-		try { this.gl = c.getContext("webgl"); } catch(e) {}
+		try { this.gl = c.getContext(ctxType); } catch(e) {}
 		if (!this.gl) {
-			console.log("SCN: !webgl");
+			console.log("SCN: can't get context for " + ctxType);
 			return;
 		}
+		this.ctxType = ctxType;
 
 		this.cam = new Camera(c.width, c.height);
 	}
