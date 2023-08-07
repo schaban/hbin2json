@@ -711,6 +711,13 @@ function setPrmMtx(loc, mtx) {
 	}
 }
 
+function setPrmVec(loc, vec) {
+	const gl = scene.gl;
+	if (gl && loc) {
+		gl.uniform3fv(loc, vec.e);
+	}
+}
+
 
 class Camera {
 	constructor(width, height) {
