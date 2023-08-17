@@ -143,6 +143,7 @@ class VEC {
 
 function vset(x, y, z)  { return (new VEC()).set(x, y, z); }
 function vcpy(v)        { return (new VEC()).copy(v); }
+function vzero()        { return vfill(0.0); }
 function vfill(s)       { return (new VEC()).fill(s); }
 function vadd(v1, v2)   { return (new VEC()).add(v1, v2); }
 function vsub(v1, v2)   { return (new VEC()).sub(v1, v2); }
@@ -451,6 +452,144 @@ function mdegxyz(dx, dy, dz) {
 	let mz = mdegz(dz);
 	let m = mmul(mz, my);
 	return mmul(m, mx);
+}
+
+
+class QUAT {
+	constructor() {
+		this.e = new Float32Array(4);
+	}
+
+	get x()  { return this.e[0]; }
+	set x(x) { this.e[0] = x; }
+	get y()  { return this.e[1]; }
+	set y(y) { this.e[1] = y; }
+	get z()  { return this.e[2]; }
+	set z(z) { this.e[2] = z; }
+	get w()  { return this.e[3]; }
+	set w(w) { this.e[3] = w; }
+
+	set(x, y, z, w) {
+		this.e[0] = x;
+		this.e[1] = y;
+		this.e[2] = z;
+		this.e[3] = w;
+		return this;
+	}
+
+	copy(q) {
+		for (let i = 0; i < 4; ++i) {
+			this.e[i] = q.e[i];
+		}
+		return this;
+	}
+
+	identity() {
+		return this.set(0.0, 0.0, 0.0, 1.0);
+	}
+
+	mul(q1, q2) {
+		const e1 = q2 ? q1.e : this.e;
+		const e2 = q2 ? q2.e : q1.e;
+		const tx = e1[3]*e2[0] + e1[0]*e2[3] + e1[1]*e2[2] - e1[2]*e2[1];
+		const ty = e1[3]*e2[1] + e1[1]*e2[3] + e1[2]*e2[0] - e1[0]*e2[2];
+		const tz = e1[3]*e2[2] + e1[2]*e2[3] + e1[0]*e2[1] - e1[1]*e2[0];
+		const tw = e1[3]*e2[3] - e1[0]*e2[0] - e1[1]*e2[1] - e1[2]*e2[2];
+		this.set(tx, ty, tz, tw);
+		return this;
+	}
+
+	scl(s) {
+		for (let i = 0; i < 4; ++i) {
+			this.e[i] *= s;
+		}
+		return this;
+	}
+
+	dot(q1, q2) {
+		const e1 = q2 ? (q1 ? q1.e : this.e) : this.e;
+		const e2 = q2 ? q2.e : (q1 ? q1.e : this.e);
+		return e1[0]*e2[0] + e1[1]*e2[1] + e1[2]*e2[2] + e1[3]*e2[3];
+	}
+
+	get mag2() { return this.dot(); }
+
+	get mag() {
+		let m = this.mag2;
+		if (m > 0) {
+			m = Math.sqrt(m);
+		}
+		return m;
+	}
+
+	normalize(q) {
+		if (q) {
+			this.copy(q);
+		}
+		const m = this.mag;
+		if (m > 0) {
+			this.scl(1.0 / m);
+		}
+		return this;
+	}
+
+	radX(rx) {
+		const h = rx * 0.5;
+		const s = Math.sin(h);
+		const c = Math.cos(h);
+		return this.set(s, 0.0, 0.0, c);
+	}
+
+	radY(ry) {
+		const h = ry * 0.5;
+		const s = Math.sin(h);
+		const c = Math.cos(h);
+		return this.set(0.0, s, 0.0, c);
+	}
+
+	radZ(rz) {
+		const h = rz * 0.5;
+		const s = Math.sin(h);
+		const c = Math.cos(h);
+		return this.set(0.0, 0.0, s, c);
+	}
+
+	degX(dx) {
+		return this.radX(degToRad(dx));
+	}
+
+	degY(dy) {
+		return this.radY(degToRad(dy));
+	}
+
+	degZ(dz) {
+		return this.radZ(degToRad(dz));
+	}
+
+	print() {
+		console.log(`<${this.x}, ${this.y}, ${this.z}, ${this.w}>`);
+	}
+
+}
+
+function qset(x, y, z, w) { return (new QUAT()).set(x, y, z, w); }
+function qcpy(q)          { return (new QUAT()).copy(q); }
+function qmul(q1, q2)     { return (new QUAT()).mul(q1, q2); }
+function qdot(q1, q2)     { return q1.dot(q2); }
+function qnrm(q)          { return qcpy(q).normalize(); }
+function qunit()          { return (new QUAT()).identity(); }
+function qradx(rx)        { return (new QUAT()).radX(rx); }
+function qrady(ry)        { return (new QUAT()).radY(ry); }
+function qradz(rz)        { return (new QUAT()).radZ(rz); }
+function qdegx(dx)        { return (new QUAT()).degX(dx); }
+function qdegy(dy)        { return (new QUAT()).degY(dy); }
+function qdegz(dz)        { return (new QUAT()).degZ(dz); }
+
+function qdegxyz(dx, dy, dz) {
+	let q = qdegz(dz);
+	q.mul(qdegy(dy));
+	q.mul(qdegx(dx));
+	return q;
 }
 
 
