@@ -943,12 +943,17 @@ class Scene {
 		this.canvas = c;
 
 		this.gl = null;
+		this.wgpu = null;
 		try { this.gl = c.getContext(ctxType); } catch(e) {}
 		if (!this.gl) {
 			console.log("SCN: can't get context for " + ctxType);
 			return;
 		}
 		this.ctxType = ctxType;
+		if (ctxType == "webgpu") {
+			this.wgpu = this.gl;
+			this.gl = null;
+		}
 
 		this.cam = new Camera(c.width, c.height);
 	}
