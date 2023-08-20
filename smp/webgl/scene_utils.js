@@ -1003,37 +1003,34 @@ class Scene {
 
 	load(flst, cb) {
 		this.clear();
-		if (!this.gl) {
-			return;
-		}
 		const txtExts = ["vert", "frag", "json"];
 		const files = {};
 		for (const fpath of flst) {
 			const fname = getFileName(fpath);
 			files[fname] = null;
 		}
-			for (const fpath of flst) {
-				let isTxt = false;
-				for (const ext of txtExts) {
-					if (fpath.endsWith("." + ext)) {
-						isTxt = true;
-						break;
-					}
+		for (const fpath of flst) {
+			let isTxt = false;
+			for (const ext of txtExts) {
+				if (fpath.endsWith("." + ext)) {
+					isTxt = true;
+					break;
 				}
-				dataReq(fpath, (data, path) => { files[getFileName(path)] = data; }, isTxt);
 			}
-			let wait = setInterval(() => {
-				let loadDone = true;
-				for (const fpath of flst) {
-					loadDone = !!files[getFileName(fpath)];
-					if (!loadDone) break;
-				}
-				if (loadDone) {
-					clearInterval(wait);
-					this.initResources(files);
-					cb();
-				}
-			}, 100);
+			dataReq(fpath, (data, path) => { files[getFileName(path)] = data; }, isTxt);
+		}
+		let wait = setInterval(() => {
+			let loadDone = true;
+			for (const fpath of flst) {
+				loadDone = !!files[getFileName(fpath)];
+				if (!loadDone) break;
+			}
+			if (loadDone) {
+				clearInterval(wait);
+				this.initResources(files);
+				cb();
+			}
+		}, 100);
 	}
 
 	printFiles() {
