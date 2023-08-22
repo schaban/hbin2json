@@ -15,6 +15,13 @@ void write_bclip_json(HBIN_BCLIP bclip, FILE* pOut) {
 	if (!(pSmps && pNames)) {
 		return;
 	}
+	bool smpU8 = false;
+	const char* pFmtOpt = nxApp::get_opt("smpfmt");
+	if (pFmtOpt) {
+		if (nxCore::str_eq(pFmtOpt, "byte") || nxCore::str_eq(pFmtOpt, "u8")) {
+			smpU8 = true;
+		}
+	}
 	bclipAllTracks(bclip, pSmps, pNames);
 	::fprintf(pOut, "{\n");
 	::fprintf(pOut, "  \"dataType\" : \"clip\",\n");
@@ -35,10 +42,22 @@ void write_bclip_json(HBIN_BCLIP bclip, FILE* pOut) {
 		::fprintf(pOut, "],\n");
 	}
 	::fprintf(pOut, "  \"samples\" : [");
-	for (int i = 0; i < nsmps; ++i) {
-		::fprintf(pOut, "%f", pSmps[i]);
-		if (i < nsmps - 1) {
-			::fprintf(pOut, ", ");
+	if (smpU8) {
+		for (int i = 0; i < nsmps; ++i) {
+			float fval = pSmps[i];
+			fval = nxCalc::clamp(fval, 0.0f, 255.0f);
+			uint8_t uval = (uint8_t)fval;
+			::fprintf(pOut, "%d", uval);
+			if (i < nsmps - 1) {
+				::fprintf(pOut, ", ");
+			}
+		}
+	} else {
+		for (int i = 0; i < nsmps; ++i) {
+			::fprintf(pOut, "%f", pSmps[i]);
+			if (i < nsmps - 1) {
+				::fprintf(pOut, ", ");
+			}
 		}
 	}
 	::fprintf(pOut, "],\n");
