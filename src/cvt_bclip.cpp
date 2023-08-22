@@ -22,16 +22,18 @@ void write_bclip_json(HBIN_BCLIP bclip, FILE* pOut) {
 	::fprintf(pOut, "  \"start\" : %d,\n", start);
 	::fprintf(pOut, "  \"frames\" : %d,\n", frames);
 	::fprintf(pOut, "  \"tracks\" : %d,\n", tracks);
-	::fprintf(pOut, "  \"names\" : [");
-	for (int i = 0; i < tracks; ++i) {
-		::fprintf(pOut, "\"");
-		hbin_str_out(pOut, pNames[i]);
-		::fprintf(pOut, "\"");
-		if (i < tracks - 1) {
-			::fprintf(pOut, ", ");
+	if (nxApp::get_bool_opt("chnames", true)) {
+		::fprintf(pOut, "  \"names\" : [");
+		for (int i = 0; i < tracks; ++i) {
+			::fprintf(pOut, "\"");
+			hbin_str_out(pOut, pNames[i]);
+			::fprintf(pOut, "\"");
+			if (i < tracks - 1) {
+				::fprintf(pOut, ", ");
+			}
 		}
+		::fprintf(pOut, "],\n");
 	}
-	::fprintf(pOut, "],\n");
 	::fprintf(pOut, "  \"samples\" : [");
 	for (int i = 0; i < nsmps; ++i) {
 		::fprintf(pOut, "%f", pSmps[i]);
