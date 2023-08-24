@@ -9,6 +9,11 @@ function radToDeg(r) {
 	return r * (180.0 / Math.PI);
 }
 
+function sinc(x) {
+	if (Math.abs(x) < 1.0e-4) return 1.0;
+	return Math.sin(x) / x;
+}
+
 function lerp(a, b, t) {
 	return a + (b - a)*t;
 }
@@ -589,6 +594,33 @@ function qdegxyz(dx, dy, dz) {
 	let q = qdegz(dz);
 	q.mul(qdegy(dy));
 	q.mul(qdegx(dx));
+	return q;
+}
+
+function qslerp(qa, qb, t) {
+	let q = qunit();
+	let q1 = qcpy(qa);
+	let q2 = qcpy(qb);
+	if (q1.dot(q2) < 0.0) {
+		q2.scl(-1.0);
+	}
+	let u = 0.0;
+	let v = 0.0;
+	for (let i = 0; i < 4; ++i) {
+		let k = q1.e[i] - q2.e[i];
+		u += k*k;
+		k = q1.e[i] + q2.e[i]
+		v += k*k;
+	}
+	const ang = 2.0 * Math.atan2(Math.sqrt(u), Math.sqrt(v));
+	let s = 1.0 - t;
+	let d = 1.0 / sinc(ang);
+	s = sinc(ang*s) * d * s;
+	t = sinc(ang*t) * d * t;
+	for (let i = 0; i < 4; ++i) {
+		q.e[i] = q1.e[i]*s + q2.e[i]*t;
+	}
+	q.normalize();
 	return q;
 }
 
