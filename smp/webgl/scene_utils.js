@@ -1035,7 +1035,7 @@ class Scene {
 
 	load(flst, cb) {
 		this.clear();
-		const txtExts = this.txtExts ? this.txtExts : ["json", "vert", "frag", "wgsl"];
+		const txtExts = this.txtExts ? this.txtExts : ["json", "vert", "frag", "glsl", "wgsl"];
 		const files = {};
 		for (const fpath of flst) {
 			const fname = getFileName(fpath);
