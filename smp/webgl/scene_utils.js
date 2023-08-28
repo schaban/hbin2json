@@ -997,6 +997,10 @@ class Scene {
 		document.addEventListener("keyup", scnKeyEvt);
 	}
 
+	saveKeys() {
+		this.kbdOld = this.kbdNow;
+	}
+
 	getKeyMask(kname) {
 		if (!this.keyNames) return false;
 		let kidx = this.keyNames.indexOf(kname);
@@ -1022,10 +1026,6 @@ class Scene {
 	keyDown(kname) {
 		const mask = this.getKeyMask(kname);
 		if (mask != 0) {
-			let old = this.kbdOld;
-			old &= ~mask;
-			old |= this.kbdNow & mask;
-			this.kbdOld = old;
 			this.kbdNow |= mask;
 		}
 	}
@@ -1033,10 +1033,6 @@ class Scene {
 	keyUp(kname) {
 		const mask = this.getKeyMask(kname);
 		if (mask != 0) {
-			let old = this.kbdOld;
-			old &= ~mask;
-			old |= this.kbdNow & mask;
-			this.kbdOld = old;
 			this.kbdNow &= ~mask;
 		}
 	}
