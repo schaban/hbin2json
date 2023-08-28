@@ -949,16 +949,10 @@ function scnKeyEvt(evt) {
 	if (!scn) return;
 	if (!scn.keyNames) return;
 	let kname = evt.key;
-	this.kbdOld = this.kbdNow;
-	let kidx = -1;
-	if (evt.type === "keydown" || evt.type === "keyup") {
-		kidx = scn.keyNames.indexOf(kname);
-	}
-	if (kidx < 0) return;
 	if (evt.type === "keydown") {
-		scn.kbdNow |= 1 << kidx;
+		scn.keyDown(kname);
 	} else if (evt.type === "keyup") {
-		scn.kbdNow &= ~(1 << kidx);
+		scn.keyUp(kname);
 	}
 }
 
@@ -1024,6 +1018,29 @@ class Scene {
 		const mask = this.getKeyMask(kname);
 		return ((this.kbdNow ^ this.kbdOld) & mask) != 0;
 	}
+
+	keyDown(kname) {
+		const mask = this.getKeyMask(kname);
+		if (mask != 0) {
+			let old = this.kbdOld;
+			old &= ~mask;
+			old |= this.kbdNow & mask;
+			this.kbdOld = old;
+			this.kbdNow |= mask;
+		}
+	}
+
+	keyUp(kname) {
+		const mask = this.getKeyMask(kname);
+		if (mask != 0) {
+			let old = this.kbdOld;
+			old &= ~mask;
+			old |= this.kbdNow & mask;
+			this.kbdOld = old;
+			this.kbdNow &= ~mask;
+		}
+	}
+
 
 	clear() {
 		this.files = null;
