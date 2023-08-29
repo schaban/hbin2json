@@ -424,6 +424,68 @@ class MTX {
 		);
 	}
 
+	getQuat() {
+		let x = 0.0;
+		let y = 0.0;
+		let z = 0.0;
+		let w = 1.0;
+		const e = this.e;
+		const tr = e[0] + e[5] + e[10];
+		if (tr > 0.0) {
+			let s = Math.sqrt(tr + 1.0);
+			w = s * 0.5;
+			s = 0.5 / s;
+			x = (e[9] - e[6]) * s;
+			y = (e[2] - e[8]) * s;
+			z = (e[4] - e[1]) * s;
+		} else {
+			if (e[5] > e[0]) {
+				if (e[10] > e[5]) {
+					let s = e[10] - e[5] - e[0];
+					s = Math.sqrt(s + 1.0);
+					z = s * 0.5;
+					if (s != 0.0) {
+						s = 0.5 / s;
+					}
+					w = (e[4] - e[1]) * s;
+					x = (e[2] + e[8]) * s;
+					y = (e[6] + e[9]) * s;
+				} else {
+					let s = e[5] - e[10] - e[0];
+					s = Math.sqrt(s + 1.0);
+					y = s * 0.5;
+					if (s != 0.0) {
+						s = 0.5 / s;
+					}
+					w = (e[2] - e[8]) * s;
+					z = (e[9] + e[6]) * s;
+					x = (e[1] + e[4]) * s;
+				}
+			} else if (e[10] > e[0]) {
+				let s = e[10] - e[5] - e[0];
+				s = Math.sqrt(s + 1.0);
+				z = s * 0.5;
+				if (s != 0.0) {
+					s = 0.5 / s;
+				}
+				w = (e[4] - e[1]) * s;
+				x = (e[2] + e[8]) * s;
+				y = (e[6] + e[9]) * s;
+			} else {
+				let s = e[0] - e[5] - e[10];
+				s = Math.sqrt(s + 1.0);
+				x = s * 0.5;
+				if (s != 0.0) {
+					s = 0.5 / s;
+				}
+				w = (e[9] - e[6]) * s;
+				y = (e[4] + e[1]) * s;
+				z = (e[8] + e[2]) * s;
+			}
+		}
+		return qset(x, y, z, w);
+	}
+
 	read(dat, offs) {
 		for (let i = 0; i < 4*4; ++i) {
 			this.e[i] = dat.getFloat32(offs + i*4, true);
