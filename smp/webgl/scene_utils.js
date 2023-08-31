@@ -633,6 +633,18 @@ class QUAT {
 		return this.radZ(degToRad(dz));
 	}
 
+	calcVec(v) {
+		let qv = vset(this.x, this.y, this.z);
+		const w = this.w;
+		const d = qv.dot(v);
+		let res = vscl(qv, d);
+		res.add(vscl(v, w*w));
+		res.sub(vscl(vcross(v, qv), w));
+		res.scl(2.0);
+		res.sub(v);
+		return res;
+	}
+
 	print() {
 		console.log(`<${this.x}, ${this.y}, ${this.z}, ${this.w}>`);
 	}
