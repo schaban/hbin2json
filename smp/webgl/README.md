@@ -8,6 +8,6 @@
 
 
 
-[WebGPU sources for these example](https://github.com/glebnovodran/hbin2json_webgpu/tree/main/smp/webgpu)
+&#x261E; [WebGPU sources for these examples](https://github.com/glebnovodran/hbin2json_webgpu/tree/main/smp/webgpu)
 
 
